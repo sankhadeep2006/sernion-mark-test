@@ -1,25 +1,21 @@
-import React, { useState, useRef } from "react";
-
-const initialDatasets = [
-  { name: "meeting_notes.txt", size: "2MB", date: "23 Aug 2025", status: "In Progress" },
-  { name: "customer_interview.mp4", size: "120MB", date: "22 Aug 2025", status: "Completed" },
-  { name: "call_recording.wav", size: "95MB", date: "20 Aug 2025", status: "Reviewed" },
-  { name: "meeting_notes.txt", size: "2MB", date: "23 Aug 2025", status: "In Progress" },
-  { name: "customer_interview.mp4", size: "120MB", date: "22 Aug 2025", status: "Completed" },
-  { name: "call_recording.wav", size: "95MB", date: "20 Aug 2025", status: "Reviewed" },
-  { name: "report.docx", size: "5MB", date: "21 Aug 2025", status: "In Progress" },
-  { name: "training.mov", size: "200MB", date: "19 Aug 2025", status: "Completed" },
-  { name: "speaker_test.ogg", size: "15MB", date: "18 Aug 2025", status: "In Progress" }
-];
+import React, { useState, useRef, useEffect } from "react";
 
 const Datasets = () => {
-  const [datasets] = useState(initialDatasets);
+  const [datasets, setDatasets] = useState([]);
   const [view, setView] = useState("grid");
   const [filter, setFilter] = useState("all");
   const [dropdownIdx, setDropdownIdx] = useState(null);
   const [profileDropdown, setProfileDropdown] = useState(false);
   const [modal, setModal] = useState({ open: false, action: null });
   const profileBtnRef = useRef();
+
+  // Fetch datasets from backend
+  useEffect(() => {
+    fetch("/api/v1/datasets/")
+      .then(res => res.json())
+      .then(data => setDatasets(data))
+      .catch(() => setDatasets([]));
+  }, []);
 
   // Filtered datasets
   let filtered = [...datasets];
@@ -31,7 +27,7 @@ const Datasets = () => {
   cardClass += filter === "recent" ? " p-10 min-h-[180px]" : " p-6 min-h-[135px]";
 
   // Dropdown close on outside click
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClick = (e) => {
       if (profileBtnRef.current && !profileBtnRef.current.contains(e.target)) setProfileDropdown(false);
       setDropdownIdx(null);
@@ -158,11 +154,11 @@ const Datasets = () => {
             className={view === "grid" ? "grid grid-cols-3 gap-6 flex-1 overflow-auto" : "flex flex-col gap-4 flex-1 overflow-auto"}
           >
             {filtered.map((p, i) => (
-              <div key={i} className={cardClass}>
+              <div key={p.id || i} className={cardClass}>
                 <div>
                   <div className="font-semibold mb-2">{p.name}</div>
-                  <div className="text-sm mb-1">{p.size} | {p.date}</div>
-                  <div className="text-sm">Status: {p.status}</div>
+                  <div className="text-sm mb-1">{(p.file_size ? (Math.round(p.file_size/1024/1024*100)/100 + ' MB') : '-') + " | " + (p.created_at ? new Date(p.created_at).toLocaleDateString() : "-")}</div>
+                  <div className="text-sm">Status: {p.is_processed ? "Completed" : "In Progress"}</div>
                 </div>
                 <button
                   className="absolute top-5 right-5 text-xl text-gray-700 hover:text-black focus:outline-none"

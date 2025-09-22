@@ -1,11 +1,15 @@
 """
 URL patterns for annotations app.
 """
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
 
 app_name = 'annotations'
 
+router = DefaultRouter()
+# Register annotation viewsets here in the future
+
 urlpatterns = [
-    # Placeholder for annotation-specific endpoints
-    # These will be implemented as needed
+    path('', include(router.urls)),
 ]

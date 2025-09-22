@@ -1,23 +1,20 @@
-import React, { useState, useRef } from "react";
-
-const initialProjects = [
-  { name: "Project Name", modified: "18.08.2025", created: "08.08.2025", status: "Completed" },
-  { name: "Project Name", modified: "18.08.2025", created: "08.08.2025", status: "Ongoing" },
-  { name: "Project Name", modified: "18.08.2025", created: "08.08.2025", status: "Ongoing" },
-  { name: "Project Name", modified: "18.08.2025", created: "08.08.2025", status: "Completed" },
-  { name: "Project Name", modified: "18.08.2025", created: "08.08.2025", status: "Ongoing" },
-  { name: "Project Name", modified: "18.08.2025", created: "08.08.2025", status: "Completed" },
-  { name: "Project Name", modified: "18.08.2025", created: "08.08.2025", status: "Ongoing" },
-  { name: "Project Name", modified: "18.08.2025", created: "08.08.2025", status: "Ongoing" }
-];
+import React, { useState, useRef, useEffect } from "react";
 
 const Projects = () => {
-  const [projects] = useState(initialProjects);
+  const [projects, setProjects] = useState([]);
   const [view, setView] = useState("grid");
   const [filter, setFilter] = useState("all");
   const [dropdownIdx, setDropdownIdx] = useState(null);
   const [profileDropdown, setProfileDropdown] = useState(false);
   const profileBtnRef = useRef();
+
+  // Fetch projects from backend
+  useEffect(() => {
+    fetch("/api/v1/projects/")
+      .then(res => res.json())
+      .then(data => setProjects(data))
+      .catch(() => setProjects([]));
+  }, []);
 
   // Filtered projects
   let filtered = [...projects];
@@ -29,7 +26,7 @@ const Projects = () => {
   cardClass += filter === "recent" ? " p-10 min-h-[180px]" : " p-6 min-h-[135px]";
 
   // Dropdown close on outside click
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClick = (e) => {
       if (profileBtnRef.current && !profileBtnRef.current.contains(e.target)) setProfileDropdown(false);
       setDropdownIdx(null);
@@ -145,11 +142,11 @@ const Projects = () => {
             className={view === "grid" ? "grid grid-cols-3 gap-6 flex-1 overflow-auto" : "flex flex-col gap-4 flex-1 overflow-auto"}
           >
             {filtered.map((p, i) => (
-              <div key={i} className={cardClass}>
+              <div key={p.id || i} className={cardClass}>
                 <div>
                   <div className="font-semibold mb-2">{p.name}</div>
-                  <div className="text-sm mb-1">Last Modified: {p.modified}</div>
-                  <div className="text-sm mb-1">Date Created: {p.created}</div>
+                  <div className="text-sm mb-1">Last Modified: {p.updated_at ? new Date(p.updated_at).toLocaleDateString() : "-"}</div>
+                  <div className="text-sm mb-1">Date Created: {p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}</div>
                   <div className="text-sm">Status: {p.status}</div>
                 </div>
                 <button
